@@ -1,27 +1,29 @@
-package delivery.glovo.controller.products;
+package delivery.glovo.controller.data;
 
 import delivery.glovo.controller.response.ApiResponse;
 import delivery.glovo.dto.ProductDto;
-import delivery.glovo.service.GlovoService;
+import delivery.glovo.service.data.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.dao.EmptyResultDataAccessException;
 
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/products")
-public class ProductsController {
-    private final GlovoService glovoService;
+public class ProductController {
+    private final ProductService productService;
 
     @GetMapping("/{id}")
     public ApiResponse<ProductDto> getById(@PathVariable("id") int id) {
         ApiResponse<ProductDto> apiResponse = new ApiResponse<>();
-        ProductDto productDto = glovoService.getProduct(id);
+        ProductDto productDto = productService.getProductById(id);
         if (productDto != null) {
             apiResponse.setSuccess(true);
             apiResponse.setData(productDto);
@@ -33,7 +35,7 @@ public class ProductsController {
     @GetMapping()
     public ApiResponse<List<ProductDto>> getProducts() {
         ApiResponse<List<ProductDto>> apiResponse = new ApiResponse<>();
-        List<ProductDto> productDtoList = glovoService.getAllProducts();
+        List<ProductDto> productDtoList = productService.getProducts();
         if (!CollectionUtils.isEmpty(productDtoList)) {
             apiResponse.setSuccess(true);
             apiResponse.setData(productDtoList);
@@ -46,10 +48,10 @@ public class ProductsController {
     @PostMapping()
     public ApiResponse<ProductDto> save(@RequestBody ProductDto productDto) {
         ApiResponse<ProductDto> apiResponse = new ApiResponse<>();
-        glovoService.addProduct(productDto);
-        ProductDto newProduct = glovoService.getProduct(productDto.getId());
+        productService.saveNewProduct(productDto);
+        ProductDto newProduct = productService.getProductById(productDto.getId());
         if (newProduct != null && newProduct.getName().equals(productDto.getName())
-                && newProduct.getCost() == newProduct.getCost()) {
+                && Objects.equals(newProduct.getCost(), newProduct.getCost())) {
             apiResponse.setSuccess(true);
             apiResponse.setData(newProduct);
             apiResponse.setMessages(Stream.of(HttpStatus.OK.toString()).toList());
@@ -60,10 +62,10 @@ public class ProductsController {
     @PutMapping("/{id}")
     public ApiResponse<ProductDto> updateById(@PathVariable("id") int id, @RequestBody ProductDto productDto) {
         ApiResponse<ProductDto> apiResponse = new ApiResponse<>();
-        glovoService.updateProduct(id, productDto);
-        ProductDto updatedProduct = glovoService.getProduct(id);
+        productService.updateProductById(id, productDto);
+        ProductDto updatedProduct = productService.getProductById(id);
         if (updatedProduct != null && updatedProduct.getName().equals(productDto.getName())
-                && updatedProduct.getCost() == productDto.getCost()) {
+                && Objects.equals(updatedProduct.getCost(), productDto.getCost())) {
             apiResponse.setSuccess(true);
             apiResponse.setData(updatedProduct);
             apiResponse.setMessages(Stream.of(HttpStatus.OK.toString()).toList());
@@ -74,10 +76,10 @@ public class ProductsController {
     @DeleteMapping("/{id}")
     public ApiResponse<ProductDto> deleteById(@PathVariable("id") int id) {
         ApiResponse<ProductDto> apiResponse = new ApiResponse<>();
-        glovoService.deleteProduct(id);
+        productService.deleteProductById(id);
         try {
-            glovoService.getProduct(id);
-        } catch (EmptyResultDataAccessException e) {
+            productService.getProductById(id);
+        } catch (NoSuchElementException e) {
             apiResponse.setSuccess(true);
             apiResponse.setMessages(Stream.of(HttpStatus.OK.toString()).toList());
         }
