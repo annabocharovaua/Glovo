@@ -2,16 +2,15 @@ package delivery.glovo.controller.data;
 
 import delivery.glovo.controller.response.ApiResponse;
 import delivery.glovo.dto.ProductDto;
-import delivery.glovo.service.data.ProductService;
+import delivery.glovo.service.ProductService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Objects;
 import java.util.stream.Stream;
 
 @RequiredArgsConstructor
@@ -21,15 +20,12 @@ public class ProductController {
     private final ProductService productService;
 
     @GetMapping("/{id}")
-    public ApiResponse<ProductDto> getById(@PathVariable("id") int id) {
-        ApiResponse<ProductDto> apiResponse = new ApiResponse<>();
-        ProductDto productDto = productService.getProductById(id);
-        if (productDto != null) {
-            apiResponse.setSuccess(true);
-            apiResponse.setData(productDto);
-            apiResponse.setMessages(Stream.of(HttpStatus.OK.toString()).toList());
+    public ResponseEntity<ProductDto> getProductById(@PathVariable("id") Integer id) {
+        ProductDto product = productService.getProductById(id);
+        if (product != null) {
+            return ResponseEntity.ok(product);
         }
-        return apiResponse;
+        return (ResponseEntity<ProductDto>) ResponseEntity.notFound();
     }
 
     @GetMapping()
@@ -46,17 +42,9 @@ public class ProductController {
     }
 
     @PostMapping()
-    public ApiResponse<ProductDto> save(@RequestBody ProductDto productDto) {
-        ApiResponse<ProductDto> apiResponse = new ApiResponse<>();
+    @ResponseStatus(HttpStatus.CREATED)
+    public void save(@RequestBody ProductDto productDto) {
         productService.saveNewProduct(productDto);
-        ProductDto newProduct = productService.getProductById(productDto.getId());
-        if (newProduct != null && newProduct.getName().equals(productDto.getName())
-                && Objects.equals(newProduct.getCost(), newProduct.getCost())) {
-            apiResponse.setSuccess(true);
-            apiResponse.setData(newProduct);
-            apiResponse.setMessages(Stream.of(HttpStatus.OK.toString()).toList());
-        }
-        return apiResponse;
     }
 
     @PutMapping("/{id}")
@@ -64,12 +52,10 @@ public class ProductController {
         ApiResponse<ProductDto> apiResponse = new ApiResponse<>();
         productService.updateProductById(id, productDto);
         ProductDto updatedProduct = productService.getProductById(id);
-        if (updatedProduct != null && updatedProduct.getName().equals(productDto.getName())
-                && Objects.equals(updatedProduct.getCost(), productDto.getCost())) {
-            apiResponse.setSuccess(true);
-            apiResponse.setData(updatedProduct);
-            apiResponse.setMessages(Stream.of(HttpStatus.OK.toString()).toList());
-        }
+        apiResponse.setSuccess(true);
+        apiResponse.setData(updatedProduct);
+        apiResponse.setMessages(Stream.of(HttpStatus.OK.toString()).toList());
+
         return apiResponse;
     }
 

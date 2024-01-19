@@ -1,10 +1,11 @@
 package delivery.glovo.service.data;
 
-import delivery.glovo.converter.OrderConverter;
 import delivery.glovo.dto.OrderDto;
 import delivery.glovo.dto.ProductDto;
-import delivery.glovo.model.data.Order;
-import delivery.glovo.repository.data.OrderRepository;
+import delivery.glovo.mappers.OrderMapper;
+import delivery.glovo.model.Order;
+import delivery.glovo.repository.OrderRepository;
+import delivery.glovo.service.OrderServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,7 +31,7 @@ class OrderServiceImplTest {
     @Mock
     private OrderRepository orderRepository;
     @Mock
-    private OrderConverter orderConverter;
+    private OrderMapper orderMapper;
     @Mock
     private Order order;
     @Mock
@@ -54,12 +55,12 @@ class OrderServiceImplTest {
     @Test
     void shouldReturnOrderById() {
         when(orderRepository.findById(anyInt())).thenReturn(Optional.of(order));
-        when(orderConverter.fromModel(order)).thenReturn(orderDto);
+        when(orderMapper.orderToOrderDto(order)).thenReturn(orderDto);
 
         OrderDto result = testInstance.getOrderById(ORDER_ID);
 
         verify(orderRepository).findById(ORDER_ID);
-        verify(orderConverter).fromModel(order);
+        verify(orderMapper).orderToOrderDto(order);
         assertNotNull(result);
         assertEquals(ORDER_ID, result.getId());
     }
@@ -74,12 +75,12 @@ class OrderServiceImplTest {
     @Test
     void shouldReturnOrders() {
         when(orderRepository.findAll()).thenReturn(orders);
-        when(orderConverter.fromModel(orders)).thenReturn(orderDtoList);
+        when(orderMapper.toOrderDtoList(orders)).thenReturn(orderDtoList);
 
         List<OrderDto> result = testInstance.getOrders();
 
         verify(orderRepository).findAll();
-        verify(orderConverter).fromModel(orders);
+        verify(orderMapper).toOrderDtoList(orders);
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals(orderDtoList, result);
@@ -87,23 +88,23 @@ class OrderServiceImplTest {
 
     @Test
     void shouldSaveOrder() {
-        when(orderConverter.toModel(orderDto)).thenReturn(order);
+        when(orderMapper.orderDtoToOrder(orderDto)).thenReturn(order);
 
         testInstance.saveNewOrder(orderDto);
 
-        verify(orderConverter).toModel(orderDto);
+        verify(orderMapper).orderDtoToOrder(orderDto);
         verify(orderRepository).save(order);
     }
 
     @Test
     void shouldUpdateOrder() {
         when(orderRepository.findById(anyInt())).thenReturn(Optional.of(order));
-        when(orderConverter.toModel(order, orderDto)).thenReturn(new Order());
+        when(orderMapper.updateToOrder(order, orderDto)).thenReturn(new Order());
 
         testInstance.updateOrderById(ORDER_ID, orderDto);
 
         verify(orderRepository).findById(ORDER_ID);
-        verify(orderConverter).toModel(order, orderDto);
+        verify(orderMapper).updateToOrder(order, orderDto);
         verify(orderRepository).save(new Order());
     }
 

@@ -1,49 +1,49 @@
-package delivery.glovo.service.data;
+package delivery.glovo.service;
 
-import delivery.glovo.converter.OrderConverter;
 import delivery.glovo.dto.OrderDto;
-import delivery.glovo.model.data.Order;
-import delivery.glovo.repository.data.OrderRepository;
+import delivery.glovo.mappers.OrderMapper;
+import delivery.glovo.model.Order;
+import delivery.glovo.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
-    private final OrderConverter orderConverter;
+    private final OrderMapper orderMapper;
 
     @Override
     public List<OrderDto> getOrders() {
         Iterable<Order> orders = orderRepository.findAll();
-        return orderConverter.fromModel(orders);
+        return orderMapper.toOrderDtoList(orders);
     }
 
     @Override
     public OrderDto getOrderById(Integer id) {
         Order order = orderRepository.findById(id).orElseThrow();
-        return orderConverter.fromModel(order);
+        return orderMapper.orderToOrderDto(order);
     }
 
 
     @Override
     public void saveNewOrder(OrderDto newOrder) {
-        Order order = orderConverter.toModel(newOrder);
+        Order order = orderMapper.orderDtoToOrder(newOrder);
         orderRepository.save(order);
     }
 
     @Override
     public void updateOrderById(Integer id, OrderDto updatedOrder) {
         Order old = orderRepository.findById(id).orElseThrow();
-        Order updated = orderConverter.toModel(old, updatedOrder);
+        Order updated = orderMapper.updateToOrder(old, updatedOrder);
         orderRepository.save(updated);
     }
 
     @Override
     public void deleteOrderById(Integer id) {
-
         orderRepository.deleteById(id);
     }
 

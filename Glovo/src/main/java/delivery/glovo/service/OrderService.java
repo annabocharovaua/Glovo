@@ -1,4 +1,4 @@
-package delivery.glovo.service.data;
+package delivery.glovo.service;
 
 import delivery.glovo.dto.OrderDto;
 

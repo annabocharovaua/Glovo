@@ -1,18 +1,19 @@
-package delivery.glovo.model.data;
+package delivery.glovo.model;
 
+import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Table;
+
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Entity
 @Builder
-@Table("products")
+@Table(name = "products")
 public class Product {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private String name;
     private Double cost;
-
 }

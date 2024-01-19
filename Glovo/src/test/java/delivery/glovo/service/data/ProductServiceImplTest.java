@@ -1,9 +1,10 @@
 package delivery.glovo.service.data;
 
-import delivery.glovo.converter.ProductConverter;
 import delivery.glovo.dto.ProductDto;
-import delivery.glovo.model.data.Product;
-import delivery.glovo.repository.data.ProductRepository;
+import delivery.glovo.mappers.ProductMapper;
+import delivery.glovo.model.Product;
+import delivery.glovo.service.ProductServiceImpl;
+import delivery.glovo.repository.ProductRepository;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,7 +29,7 @@ public class ProductServiceImplTest {
     @InjectMocks
     private ProductServiceImpl testInstance;
     @Mock
-    private ProductConverter productConverter;
+    private ProductMapper productMapper;
     @Mock
     private ProductRepository productRepository;
     @Mock
@@ -53,12 +54,12 @@ public class ProductServiceImplTest {
     @Test
     void shouldReturnProducts() {
         when(productRepository.findAll()).thenReturn(products);
-        when(productConverter.fromModel(products)).thenReturn(productDtoList);
+        when(productMapper.productListToProductDtoList(products)).thenReturn(productDtoList);
 
         List<ProductDto> result = testInstance.getProducts();
 
         verify(productRepository).findAll();
-        verify(productConverter).fromModel(products);
+        verify(productMapper).productListToProductDtoList(products);
         assertNotNull(result);
         assertEquals(1, productDtoList.size());
         assertEquals(productDtoList, result);
@@ -67,12 +68,12 @@ public class ProductServiceImplTest {
     @Test
     void shouldReturnProductById() {
         when(productRepository.findById(any())).thenReturn(Optional.of(product));
-        when(productConverter.fromModel(product)).thenReturn(productDto);
+        when(productMapper.productToProductDto(product)).thenReturn(productDto);
 
         ProductDto result = testInstance.getProductById(PRODUCT_ID);
 
         verify(productRepository).findById(PRODUCT_ID);
-        verify(productConverter).fromModel((product));
+        verify(productMapper).productToProductDto((product));
         assertNotNull(result);
         assertEquals(PRODUCT_ID, result.getId());
     }
@@ -85,23 +86,23 @@ public class ProductServiceImplTest {
 
     @Test
     void shouldSaveProduct() {
-        when(productConverter.toModel(productDto)).thenReturn(product);
+        when(productMapper.productDtoToProduct(productDto)).thenReturn(product);
 
         testInstance.saveNewProduct(productDto);
 
-        verify(productConverter).toModel(productDto);
+        verify(productMapper).productDtoToProduct(productDto);
         verify(productRepository).save(product);
     }
 
     @Test
     void shouldUpdateProduct() {
         when(productRepository.findById(any())).thenReturn(Optional.of(product));
-        when(productConverter.toModel(product, productDto)).thenReturn(new Product());
+        when(productMapper.updateToProduct(product, productDto)).thenReturn(new Product());
 
         testInstance.updateProductById(PRODUCT_ID, productDto);
 
         verify(productRepository).findById(PRODUCT_ID);
-        verify(productConverter).toModel(product, productDto);
+        verify(productMapper).updateToProduct(product, productDto);
         verify(productRepository).save(new Product());
     }
 

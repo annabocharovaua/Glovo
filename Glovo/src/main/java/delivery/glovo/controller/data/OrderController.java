@@ -2,16 +2,15 @@ package delivery.glovo.controller.data;
 
 import delivery.glovo.controller.response.ApiResponse;
 import delivery.glovo.dto.OrderDto;
-import delivery.glovo.service.data.OrderService;
+import delivery.glovo.service.OrderService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Objects;
 import java.util.stream.Stream;
 
 
@@ -20,17 +19,13 @@ import java.util.stream.Stream;
 @RequestMapping("/api/v1/orders")
 public class OrderController {
     private final OrderService orderService;
-
     @GetMapping("/{id}")
-    public ApiResponse<OrderDto> getById(@PathVariable("id") int id) {
-        ApiResponse<OrderDto> apiResponse = new ApiResponse<>();
-        OrderDto orderDto = orderService.getOrderById(id);
-        if (orderDto != null) {
-            apiResponse.setSuccess(true);
-            apiResponse.setData(orderDto);
-            apiResponse.setMessages(Stream.of(HttpStatus.OK.toString()).toList());
+    public ResponseEntity<OrderDto> getOrderById(@PathVariable("id") Integer id) {
+        OrderDto order = orderService.getOrderById(id);
+        if (order != null) {
+            return ResponseEntity.ok(order);
         }
-        return apiResponse;
+        return (ResponseEntity<OrderDto>) ResponseEntity.notFound();
     }
 
     @GetMapping()
@@ -47,17 +42,9 @@ public class OrderController {
     }
 
     @PostMapping()
-    public ApiResponse<OrderDto> save(@RequestBody OrderDto orderDto) {
-        ApiResponse<OrderDto> apiResponse = new ApiResponse<>();
+    @ResponseStatus(HttpStatus.CREATED)
+    public void save(@RequestBody OrderDto orderDto) {
         orderService.saveNewOrder(orderDto);
-        OrderDto newOrder = orderService.getOrderById(orderDto.getId());
-        if (newOrder != null && newOrder.getDate().equals(orderDto.getDate())
-                && Objects.equals(newOrder.getCost(), orderDto.getCost())) {
-            apiResponse.setSuccess(true);
-            apiResponse.setData(newOrder);
-            apiResponse.setMessages(Stream.of(HttpStatus.OK.toString()).toList());
-        }
-        return apiResponse;
     }
 
     @PutMapping("/{id}")
@@ -65,12 +52,11 @@ public class OrderController {
         ApiResponse<OrderDto> apiResponse = new ApiResponse<>();
         orderService.updateOrderById(id, orderDto);
         OrderDto updatedOrder = orderService.getOrderById(id);
-        if (updatedOrder != null && updatedOrder.getDate().equals(orderDto.getDate())
-                && Objects.equals(updatedOrder.getCost(), orderDto.getCost())) {
-            apiResponse.setSuccess(true);
-            apiResponse.setData(updatedOrder);
-            apiResponse.setMessages(Stream.of(HttpStatus.OK.toString()).toList());
-        }
+
+        apiResponse.setSuccess(true);
+        apiResponse.setData(updatedOrder);
+        apiResponse.setMessages(Stream.of(HttpStatus.OK.toString()).toList());
+
         return apiResponse;
     }
 
@@ -86,6 +72,7 @@ public class OrderController {
         }
         return apiResponse;
     }
+
 
 
 }
