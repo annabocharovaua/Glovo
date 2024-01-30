@@ -1,4 +1,4 @@
-package delivery.glovo.security;
+package delivery.glovo.service;
 
 import delivery.glovo.model.Role;
 import delivery.glovo.model.User;

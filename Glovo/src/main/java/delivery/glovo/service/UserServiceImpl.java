@@ -2,20 +2,20 @@ package delivery.glovo.service;
 
 import delivery.glovo.dto.UserDto;
 import delivery.glovo.mappers.UserMapper;
-import delivery.glovo.model.Order;
 import delivery.glovo.model.Role;
 import delivery.glovo.model.User;
 import delivery.glovo.repository.RoleRepository;
 import delivery.glovo.repository.UserRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class UserServiceImpl implements UserService {
 
     private UserRepository userRepository;
@@ -39,14 +39,15 @@ public class UserServiceImpl implements UserService {
 
         user.setPassword(passwordEncoder.encode(userDto.getPassword()));
 
-        Role role = roleRepository.findByName("user");
+        Role role = roleRepository.findByName("ROLE_USER");
         if (role == null) {
-            role = Role.builder().name("user").build();
+            role = Role.builder().name("ROLE_USER").build();
             roleRepository.save(role);
         }
 
         user.setRoles(Arrays.asList(role));
-        userRepository.save(user);
+        User saved = userRepository.save(user);
+        log.debug("Saved new user with email: {}", user.getEmail());
     }
 
     @Override
@@ -73,11 +74,13 @@ public class UserServiceImpl implements UserService {
             user = userMapper.updateUser(user, userDto);
         }
         userRepository.save(user);
+        log.debug("Updated user with id : " + id);
     }
 
     @Override
     public void deleteUserById(Long id){
         userRepository.deleteById(id);
+        log.info("Deleted user with id: {}", id);
     }
 
 }

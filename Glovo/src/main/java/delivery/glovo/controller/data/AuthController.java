@@ -9,6 +9,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
 import java.util.List;
@@ -69,5 +70,12 @@ public class AuthController {
         List<UserDto> users = userService.getAllUsers();
         model.addAttribute("users", users);
         return "users";
+    }
+
+    @GetMapping("/user/{id}")
+    public String userById(Model model, @PathVariable("id") Long id) {
+        UserDto user = userService.getUserById(id);
+        model.addAttribute("user", user);
+        return "user";
     }
 }
